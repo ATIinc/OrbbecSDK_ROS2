@@ -20,9 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {image: "ros:foxy-ros-core-focal", os: ubuntu-22.04, ros: foxy}
-          - {image: "ros:humble-ros-core-jammy", os: ubuntu-22.04, ros: humble}
-          - {image: "ros:jazzy-ros-core-noble", os: ubuntu-24.04, ros: jazzy}
+          - {image: "ros:kilted-ros-core-noble", os: ubuntu-24.04, ros: kilted}
           - {image: "ros:lyrical-ros-core-resolute", os: ubuntu-26.04, ros: lyrical}
           - {image: "ros:rolling-ros-core-resolute", os: ubuntu-26.04, ros: rolling}
 
