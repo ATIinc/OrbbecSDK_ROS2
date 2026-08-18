@@ -4442,6 +4442,7 @@ void OBCameraNode::getParameters() {
   }
   setAndGetNodeParameter<bool>(publish_tf_, "publish_tf", true);
   setAndGetNodeParameter<double>(tf_publish_rate_, "tf_publish_rate", 0.0);
+  setAndGetNodeParameter<std::string>(tf_prefix_, "tf_prefix", "");
   setAndGetNodeParameter<bool>(depth_registration_, "depth_registration", false);
   bool enable_enhanced_depth = false;
   setAndGetNodeParameter<bool>(enable_enhanced_depth, "enable_enhanced_depth", false);
@@ -7108,8 +7109,8 @@ void OBCameraNode::publishStaticTF(const rclcpp::Time &t, const tf2::Vector3 &tr
                                    const std::string &to) {
   geometry_msgs::msg::TransformStamped msg;
   msg.header.stamp = t;
-  msg.header.frame_id = from;
-  msg.child_frame_id = to;
+  msg.header.frame_id = tf_prefix_ + from;
+  msg.child_frame_id = tf_prefix_ + to;
   msg.transform.translation.x = trans[2] / 1000.0;
   msg.transform.translation.y = -trans[0] / 1000.0;
   msg.transform.translation.z = -trans[1] / 1000.0;
