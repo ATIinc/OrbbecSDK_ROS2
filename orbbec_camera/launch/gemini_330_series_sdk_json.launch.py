@@ -100,6 +100,7 @@ def generate_launch_description():
 
         DeclareLaunchArgument('publish_tf', default_value='true'),
         DeclareLaunchArgument('tf_publish_rate', default_value='0.0'),
+        DeclareLaunchArgument('tf_prefix', default_value=''),
         DeclareLaunchArgument('ir_info_url', default_value=''),
         DeclareLaunchArgument('color_info_url', default_value=''),
         DeclareLaunchArgument('enable_publish_extrinsic', default_value='false'),

@@ -795,6 +795,7 @@ class OBCameraNode {
   std::shared_ptr<std::thread> tf_thread_ = nullptr;
   std::condition_variable tf_cv_;
   double tf_publish_rate_ = 10.0;
+  std::string tf_prefix_;
   std::unique_ptr<camera_info_manager::CameraInfoManager> ir_info_manager_ = nullptr;
   std::unique_ptr<camera_info_manager::CameraInfoManager> color_info_manager_ = nullptr;
   std::string color_info_url_;

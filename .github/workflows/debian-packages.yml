@@ -10,8 +10,7 @@ on:
         type: choice
         options:
           - all
-          - humble
-          - jazzy
+          - kilted
           - lyrical
       architecture:
         description: CPU architecture to package
@@ -71,8 +70,7 @@ jobs:
               entries+=("${entry}")
             done
           done <<'EOF'
-          humble|jammy|22.04
-          jazzy|noble|24.04
+          kilted|noble|24.04
           lyrical|resolute|26.04
           EOF
 
