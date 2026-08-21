@@ -4371,7 +4371,10 @@ void OBCameraNode::setupDefaultImageFormat() {
 
 void OBCameraNode::getParameters() {
   setAndGetNodeParameter<std::string>(camera_name_, "camera_name", "camera");
-  camera_link_frame_id_ = camera_name_ + "_link";
+  // IMPORTANT: this param setup must happen before we use the memver variable below!
+  setAndGetNodeParameter<std::string>(tf_prefix_, "tf_prefix", "");
+
+  camera_link_frame_id_ = tf_prefix_ + camera_name_ + "_link";
   for (auto stream_index : IMAGE_STREAMS) {
     std::string param_name = stream_name_[stream_index] + "_width";
     setAndGetNodeParameter(width_[stream_index], param_name, 0);
@@ -4442,7 +4445,6 @@ void OBCameraNode::getParameters() {
   }
   setAndGetNodeParameter<bool>(publish_tf_, "publish_tf", true);
   setAndGetNodeParameter<double>(tf_publish_rate_, "tf_publish_rate", 0.0);
-  setAndGetNodeParameter<std::string>(tf_prefix_, "tf_prefix", "");
   setAndGetNodeParameter<bool>(depth_registration_, "depth_registration", false);
   bool enable_enhanced_depth = false;
   setAndGetNodeParameter<bool>(enable_enhanced_depth, "enable_enhanced_depth", false);
@@ -7109,8 +7111,8 @@ void OBCameraNode::publishStaticTF(const rclcpp::Time &t, const tf2::Vector3 &tr
                                    const std::string &to) {
   geometry_msgs::msg::TransformStamped msg;
   msg.header.stamp = t;
-  msg.header.frame_id = tf_prefix_ + from;
-  msg.child_frame_id = tf_prefix_ + to;
+  msg.header.frame_id = from;
+  msg.child_frame_id = to;
   msg.transform.translation.x = trans[2] / 1000.0;
   msg.transform.translation.y = -trans[0] / 1000.0;
   msg.transform.translation.z = -trans[1] / 1000.0;
