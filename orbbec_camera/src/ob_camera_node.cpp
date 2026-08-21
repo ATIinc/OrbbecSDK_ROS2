@@ -4371,7 +4371,7 @@ void OBCameraNode::setupDefaultImageFormat() {
 
 void OBCameraNode::getParameters() {
   setAndGetNodeParameter<std::string>(camera_name_, "camera_name", "camera");
-  // IMPORTANT: this param setup must happen before we use the memver variable below!
+  // IMPORTANT: this param setup must happen before we use the member variable below!
   setAndGetNodeParameter<std::string>(tf_prefix_, "tf_prefix", "");
 
   camera_link_frame_id_ = tf_prefix_ + camera_name_ + "_link";
