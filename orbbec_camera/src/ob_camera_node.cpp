@@ -612,7 +612,7 @@ void OBCameraNode::publishDepthFiltersStatus() {
 
   DepthFiltersStatus msg;
   msg.header.stamp = node_->now();
-  msg.header.frame_id = camera_name_;
+  msg.header.frame_id = tf_prefix_ + camera_name_;
 
   const bool noise_removal_filter_supported =
       device_->isPropertySupported(OB_PROP_DEPTH_SOFT_FILTER_BOOL, OB_PERMISSION_READ_WRITE) ||
@@ -4392,10 +4392,10 @@ void OBCameraNode::getParameters() {
     param_name = stream_name_[stream_index] + "_rotation";
     setAndGetNodeParameter<int>(rotation_stream_[stream_index], param_name, -1);
     param_name = camera_name_ + "_" + stream_name_[stream_index] + "_frame_id";
-    std::string default_frame_id = camera_name_ + "_" + stream_name_[stream_index] + "_frame";
+    std::string default_frame_id = tf_prefix_ + camera_name_ + "_" + stream_name_[stream_index] + "_frame";
     setAndGetNodeParameter(frame_id_[stream_index], param_name, default_frame_id);
     std::string default_optical_frame_id =
-        camera_name_ + "_" + stream_name_[stream_index] + "_optical_frame";
+        tf_prefix_ + camera_name_ + "_" + stream_name_[stream_index] + "_optical_frame";
     param_name = stream_name_[stream_index] + "_optical_frame_id";
     setAndGetNodeParameter(optical_frame_id_[stream_index], param_name, default_optical_frame_id);
     param_name = stream_name_[stream_index] + "_format";
@@ -4431,14 +4431,14 @@ void OBCameraNode::getParameters() {
     param_name = stream_name_[stream_index] + "_range";
     setAndGetNodeParameter<std::string>(imu_range_[stream_index], param_name, "");
     param_name = camera_name_ + "_" + stream_name_[stream_index] + "_frame_id";
-    std::string default_frame_id = camera_name_ + "_" + stream_name_[stream_index] + "_frame";
+    std::string default_frame_id = tf_prefix_ + camera_name_ + "_" + stream_name_[stream_index] + "_frame";
     setAndGetNodeParameter(frame_id_[stream_index], param_name, default_frame_id);
     std::string default_optical_frame_id =
-        camera_name_ + "_" + stream_name_[stream_index] + "_optical_frame";
+        tf_prefix_ + camera_name_ + "_" + stream_name_[stream_index] + "_optical_frame";
     param_name = stream_name_[stream_index] + "_optical_frame_id";
     setAndGetNodeParameter(optical_frame_id_[stream_index], param_name, default_optical_frame_id);
     depth_aligned_frame_id_[stream_index] =
-        camera_name_ + "_" + stream_name_[COLOR] + "_optical_frame";
+        tf_prefix_ + camera_name_ + "_" + stream_name_[COLOR] + "_optical_frame";
   }
   setAndGetNodeParameter<bool>(publish_tf_, "publish_tf", true);
   setAndGetNodeParameter<double>(tf_publish_rate_, "tf_publish_rate", 0.0);
@@ -7012,7 +7012,7 @@ void OBCameraNode::onNewIMUFrameCallback(const std::shared_ptr<ob::Frame> &frame
 }
 
 void OBCameraNode::setDefaultIMUMessage(sensor_msgs::msg::Imu &imu_msg) {
-  imu_msg.header.frame_id = "imu_link";
+  imu_msg.header.frame_id = tf_prefix_ + "imu_link";
   imu_msg.orientation.x = 0.0;
   imu_msg.orientation.y = 0.0;
   imu_msg.orientation.z = 0.0;
@@ -7186,7 +7186,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
   }
 
   if (enable_stream_[DEPTH] && enable_stream_[COLOR] && enable_publish_extrinsic_) {
-    static const char *frame_id = "depth_to_color_extrinsics";
+    static const char *frame_id = tf_prefix_ + "depth_to_color_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[COLOR]);
@@ -7202,7 +7202,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
   }
 
   if (enable_stream_[DEPTH] && enable_stream_[INFRA0] && enable_publish_extrinsic_) {
-    static const char *frame_id = "depth_to_ir_extrinsics";
+    static const char *frame_id = tf_prefix_ + "depth_to_ir_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[INFRA0]);
@@ -7217,7 +7217,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[INFRA0]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[INFRA1] && enable_publish_extrinsic_) {
-    static const char *frame_id = "depth_to_left_ir_extrinsics";
+    static const char *frame_id = tf_prefix_ + "depth_to_left_ir_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[INFRA1]);
@@ -7232,7 +7232,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[INFRA1]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[INFRA2] && enable_publish_extrinsic_) {
-    static const char *frame_id = "depth_to_right_ir_extrinsics";
+    static const char *frame_id = tf_prefix_ + "depth_to_right_ir_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[INFRA2]);
@@ -7248,7 +7248,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[INFRA2]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[ACCEL] && enable_publish_extrinsic_) {
-    static const char *frame_id = "depth_to_accel_extrinsics";
+    static const char *frame_id = tf_prefix_ + "depth_to_accel_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[ACCEL]);
@@ -7263,7 +7263,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[ACCEL]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[GYRO] && enable_publish_extrinsic_) {
-    static const char *frame_id = "depth_to_gyro_extrinsics";
+    static const char *frame_id = tf_prefix_ + "depth_to_gyro_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[GYRO]);
@@ -7278,7 +7278,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[GYRO]->publish(ex_msg);
   }
   if (enable_stream_[COLOR_LEFT] && enable_stream_[COLOR_RIGHT] && enable_publish_extrinsic_) {
-    static const char *frame_id = "left_color_to_right_color_extrinsics";
+    static const char *frame_id = tf_prefix_ + "left_color_to_right_color_extrinsics";
     OBExtrinsic ex;
     try {
       ex = stream_profile_[COLOR_LEFT]->getExtrinsicTo(stream_profile_[COLOR_RIGHT]);
