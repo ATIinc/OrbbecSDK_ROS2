@@ -4417,7 +4417,7 @@ void OBCameraNode::getParameters() {
     depth_aligned_frame_id_[stream_index] = optical_frame_id_[COLOR];
   }
 
-  accel_gyro_frame_id_ = camera_name_ + "_accel_gyro_optical_frame";
+  accel_gyro_frame_id_ = tf_prefix_ + camera_name_ + "_accel_gyro_optical_frame";
 
   setAndGetNodeParameter<bool>(enable_sync_output_accel_gyro_, "enable_sync_output_accel_gyro",
                                false);
