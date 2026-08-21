@@ -7186,7 +7186,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
   }
 
   if (enable_stream_[DEPTH] && enable_stream_[COLOR] && enable_publish_extrinsic_) {
-    static const char *frame_id = tf_prefix_ + "depth_to_color_extrinsics";
+    auto frame_id = tf_prefix_ + "depth_to_color_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[COLOR]);
@@ -7202,7 +7202,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
   }
 
   if (enable_stream_[DEPTH] && enable_stream_[INFRA0] && enable_publish_extrinsic_) {
-    static const char *frame_id = tf_prefix_ + "depth_to_ir_extrinsics";
+    auto frame_id = tf_prefix_ + "depth_to_ir_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[INFRA0]);
@@ -7217,7 +7217,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[INFRA0]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[INFRA1] && enable_publish_extrinsic_) {
-    static const char *frame_id = tf_prefix_ + "depth_to_left_ir_extrinsics";
+    auto frame_id = tf_prefix_ + "depth_to_left_ir_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[INFRA1]);
@@ -7232,7 +7232,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[INFRA1]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[INFRA2] && enable_publish_extrinsic_) {
-    static const char *frame_id = tf_prefix_ + "depth_to_right_ir_extrinsics";
+    auto frame_id = tf_prefix_ + "depth_to_right_ir_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[INFRA2]);
@@ -7248,7 +7248,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[INFRA2]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[ACCEL] && enable_publish_extrinsic_) {
-    static const char *frame_id = tf_prefix_ + "depth_to_accel_extrinsics";
+    auto frame_id = tf_prefix_ + "depth_to_accel_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[ACCEL]);
@@ -7263,7 +7263,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[ACCEL]->publish(ex_msg);
   }
   if (enable_stream_[DEPTH] && enable_stream_[GYRO] && enable_publish_extrinsic_) {
-    static const char *frame_id = tf_prefix_ + "depth_to_gyro_extrinsics";
+    auto frame_id = tf_prefix_ + "depth_to_gyro_extrinsics";
     OBExtrinsic ex;
     try {
       ex = base_stream_profile->getExtrinsicTo(stream_profile_[GYRO]);
@@ -7278,7 +7278,7 @@ void OBCameraNode::calcAndPublishStaticTransform() {
     depth_to_other_extrinsics_publishers_[GYRO]->publish(ex_msg);
   }
   if (enable_stream_[COLOR_LEFT] && enable_stream_[COLOR_RIGHT] && enable_publish_extrinsic_) {
-    static const char *frame_id = tf_prefix_ + "left_color_to_right_color_extrinsics";
+    auto frame_id = tf_prefix_ + "left_color_to_right_color_extrinsics";
     OBExtrinsic ex;
     try {
       ex = stream_profile_[COLOR_LEFT]->getExtrinsicTo(stream_profile_[COLOR_RIGHT]);
