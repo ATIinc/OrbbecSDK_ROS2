@@ -287,6 +287,10 @@ void OBCameraNodeDriver::init() {
   signal(SIGTERM, signalHandler);
   ob::Context::setExtensionsDirectory(extension_path_.c_str());
   g_camera_name = declare_parameter<std::string>("camera_name", g_camera_name);
+  // Declared here rather than in OBCameraNode because the driver shares this node with
+  // OBCameraNode; OBCameraNode reads it back through Parameters::setParam, which reuses an
+  // already-declared parameter. Keep the default in sync with OBCameraNode::getParameters().
+  tf_prefix_ = declare_parameter<std::string>("tf_prefix", "");
   auto log_level_str = declare_parameter<std::string>("log_level", "info");
   auto log_level = obLogSeverityFromString(log_level_str);
   auto ros_log_level = rosLogSeverityFromString(log_level_str);
@@ -702,7 +706,7 @@ void OBCameraNodeDriver::deviceStatusTimer() {
   orbbec_camera_msgs::msg::DeviceStatus status_msg;
   status_msg.header.stamp = this->now();
   status_msg.device_online = device_connected_.load();
-  status_msg.header.frame_id = node_name_;
+  status_msg.header.frame_id = tf_prefix_ + node_name_;
 
   // Initialize default values for when device is not connected
   status_msg.connection_type = "";

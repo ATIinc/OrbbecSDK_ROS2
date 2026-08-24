@@ -160,6 +160,7 @@ class OBCameraNodeDriver : public rclcpp::Node {
   int device_status_interval_hz = 2;  // 2Hz
   rclcpp::Publisher<orbbec_camera_msgs::msg::DeviceStatus>::SharedPtr device_status_pub_ = nullptr;
   std::string node_name_;
+  std::string tf_prefix_;
   bool force_ip_enable_{false};
   bool force_ip_dhcp_{false};
   std::string force_ip_mac_;          // e.g. "54:14:FD:06:07:DA"
