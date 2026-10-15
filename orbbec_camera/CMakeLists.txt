@@ -34,6 +34,7 @@ set(dependencies
     orbbec_camera_msgs
     rcl_interfaces
     rclcpp
+    rclcpp_action
     rclcpp_components
     rmw
     sensor_msgs
@@ -127,8 +128,9 @@ elseif((${MACHINES} MATCHES "aarch64") AND (${MACHINES_BIT} MATCHES "64"))
     set(HOST_PLATFORM "arm64")
 endif()
 
-set(ORBBEC_LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SDK/lib/${HOST_PLATFORM})
-set(ORBBEC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SDK/include/)
+set(ORBBEC_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SDK/${HOST_PLATFORM}")
+set(ORBBEC_LIBS_DIR "${ORBBEC_SDK_DIR}/lib")
+set(ORBBEC_INCLUDE_DIR "${ORBBEC_SDK_DIR}/include/")
 
 set(CMAKE_BUILD_RPATH "${CMAKE_BUILD_RPATH}:${ORBBEC_LIBS_DIR}")
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:${ORBBEC_LIBS_DIR}")
@@ -140,8 +142,40 @@ if(USE_NV_HW_DECODER)
     set(TEGRA_ARMABI /usr/lib/aarch64-linux-gnu/)
     add_definitions(-DUSE_NV_HW_DECODER)
     add_compile_options(-Wno-missing-field-initializers -Wno-unused-parameter)
-    set(NV_LIBRARIES -lnvjpeg -lnvbufsurface -lnvbufsurftransform -lyuv -lv4l2)
-    list(APPEND NV_LIBRARIES -L${TEGRA_ARMABI} -L${TEGRA_ARMABI}/tegra)
+    # Search Jetson Multimedia API libraries, excluding CUDA library directories.
+    find_library(JETSON_JPEG_LIBRARY
+        NAMES nvmm_jpeg nvjpeg
+        PATHS
+            "${TEGRA_ARMABI}/nvidia"
+            "${TEGRA_ARMABI}/tegra"
+        NO_DEFAULT_PATH
+    )
+    if(NOT JETSON_JPEG_LIBRARY)
+        message(FATAL_ERROR
+            "Jetson Multimedia API JPEG library not found. "
+            "Install the Multimedia API matching the system L4T version."
+        )
+    endif()
+    message(STATUS "Jetson JPEG library: ${JETSON_JPEG_LIBRARY}")
+
+    set(NV_LIBRARIES
+        "${JETSON_JPEG_LIBRARY}"
+        -lnvbufsurface -lnvbufsurftransform -lyuv -lv4l2
+    )
+    list(APPEND NV_LIBRARIES
+        "-L${TEGRA_ARMABI}"
+        "-L${TEGRA_ARMABI}/nvidia"
+        "-L${TEGRA_ARMABI}/tegra"
+    )
+
+    # The nvmm_jpeg Multimedia API classes use the CUDA driver API.
+    if(JETSON_JPEG_LIBRARY MATCHES "/libnvmm_jpeg\\.so")
+        if(CMAKE_VERSION VERSION_LESS "3.17")
+            message(FATAL_ERROR "nvmm_jpeg support requires CMake 3.17 or newer to find CUDAToolkit.")
+        endif()
+        find_package(CUDAToolkit REQUIRED)
+        list(APPEND NV_LIBRARIES CUDA::cuda_driver)
+    endif()
 endif()
 
 set(COMMON_INCLUDE_DIRS
@@ -157,6 +191,8 @@ set(SOURCE_FILES
   src/dynamic_params.cpp
   src/image_publisher.cpp
   src/frame_timestamp_csv_logger.cpp
+  src/imu_timestamp_csv_logger.cpp
+  src/timestamp_csv_logger.cpp
   src/ob_camera_node_driver.cpp
   src/ob_camera_node.cpp
   src/ob_lidar_node.cpp
@@ -265,6 +301,22 @@ orbbec_target_dependencies(${PROJECT_NAME}
 rclcpp_components_register_node(
     ${PROJECT_NAME} PLUGIN "orbbec_camera::OBCameraNodeDriver" EXECUTABLE orbbec_camera_node
 )
+
+add_library(action_command_component SHARED src/action_command_node.cpp)
+target_include_directories(action_command_component PUBLIC ${COMMON_INCLUDE_DIRS})
+target_link_directories(action_command_component PRIVATE ${ORBBEC_LIBS_DIR})
+target_link_libraries(action_command_component
+    ${orbbec_camera_msgs_TARGETS}
+    OrbbecSDK
+    rclcpp::rclcpp
+)
+orbbec_target_dependencies(action_command_component rclcpp_components)
+rclcpp_components_register_node(
+    action_command_component
+    PLUGIN "orbbec_camera::ActionCommandNode"
+    EXECUTABLE action_command_node
+)
+
 # Add nodes using the macro
 add_orbbec_executable(list_devices_node tools/list_devices_node.cpp)
 add_orbbec_executable(list_depth_work_mode_node tools/list_depth_work_mode.cpp)
@@ -275,6 +327,7 @@ add_orbbec_executable(set_device_ip tools/ip_config_tool.cpp)
 add_orbbec_executable(topic_statistics_node tools/topic_statistics.cpp)
 add_orbbec_executable(ob_benchmark_node tools/ob_benchmark.cpp)
 add_orbbec_executable(435le_example_node examples/Gemini_435Le_example_node/camera_example_node.cpp)
+add_orbbec_executable(ae_awb_lock_test_node examples/ae_awb_lock/ae_awb_lock_test_node.cpp)
 add_orbbec_executable(service_benchmark_node scripts/service_benchmark_node.cpp)
 add_orbbec_executable(image_sync_example_node examples/multi_camera_time_sync/image_sync_example_node.cpp)
 orbbec_target_dependencies(topic_statistics_node statistics_msgs)
@@ -355,7 +408,8 @@ rclcpp_components_register_node(
 )
 
 # Install rules
-install(TARGETS ${PROJECT_NAME} frame_latency start_benchmark multi_save_rgbir ARCHIVE DESTINATION lib
+install(TARGETS ${PROJECT_NAME} action_command_component frame_latency start_benchmark
+        multi_save_rgbir ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib RUNTIME DESTINATION bin
 )
 
@@ -381,12 +435,17 @@ if(DEFINED ENV{BUILDING_PACKAGE})
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/scripts/99-obsensor-libusb.rules DESTINATION /etc/udev/rules.d)
 endif()
 
-install(TARGETS list_devices_node list_depth_work_mode_node list_camera_profile_mode_node firmware_update_tool topic_statistics_node  service_benchmark_node ob_benchmark_node 435le_example_node ip_config_tool set_device_ip image_sync_example_node DESTINATION lib/${PROJECT_NAME}/
+install(TARGETS list_devices_node list_depth_work_mode_node list_camera_profile_mode_node firmware_update_tool topic_statistics_node  service_benchmark_node ob_benchmark_node 435le_example_node ae_awb_lock_test_node ip_config_tool set_device_ip image_sync_example_node DESTINATION lib/${PROJECT_NAME}/
 )
 
 if(BUILD_TESTING)
     find_package(ament_lint_auto REQUIRED)
+    find_package(ament_cmake_gtest REQUIRED)
     ament_lint_auto_find_test_dependencies()
+
+    ament_add_gtest(camera_info_distortion_test test/camera_info_distortion_test.cpp)
+    target_link_directories(camera_info_distortion_test PRIVATE ${ORBBEC_LIBS_DIR})
+    target_link_libraries(camera_info_distortion_test ${PROJECT_NAME})
 endif()
 
 ament_export_include_directories(include)
